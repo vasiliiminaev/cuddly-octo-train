@@ -98,8 +98,7 @@ async def scrape(req: ScrapeRequest, _=Depends(require_token)) -> ScrapeResponse
         "bathrooms": data.get("bathrooms"),
         "images": data.get("images", []),
     }
-    # Push to Supabase in background (don't block the response)
-    import asyncio
-    asyncio.create_task(ingest_property(payload))
+   # Ingest to Supabase directly
+    await ingest_property(payload)
 
     return ScrapeResponse(**payload)
