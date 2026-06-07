@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .browser import pool
 from .models import ErrorResponse, ScrapeRequest, ScrapeResponse
 from .scrapers import pick_scraper
+from .ingest import ingest_property
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("scraper")
@@ -97,4 +98,8 @@ async def scrape(req: ScrapeRequest, _=Depends(require_token)) -> ScrapeResponse
         "bathrooms": data.get("bathrooms"),
         "images": data.get("images", []),
     }
+    # Push to Supabase in background (don't block the response)
+    import asyncio
+    asyncio.create_task(ingest_property(payload))
+
     return ScrapeResponse(**payload)
