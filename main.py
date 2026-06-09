@@ -65,6 +65,37 @@ def require_token(request: Request) -> None:
 async def health() -> dict:
     return {"status": "ok"}
 
+@app.get("/test-ingest")
+async def test_ingest() -> dict:
+    import os
+    url_set = bool(os.getenv("SUPABASE_INGEST_URL"))
+    secret_set = bool(os.getenv("SCRAPER_SECRET"))
+    url_preview = os.getenv("SUPABASE_INGEST_URL", "NOT SET")[:40]
+
+    result = await ingest_property({
+        "url": "https://test.com/diagnostic-123",
+        "source": "test",
+        "title": "Diagnostic Test Property",
+        "price": 99000,
+        "location": "Test City",
+        "size": 55,
+        "rooms": 2,
+        "bathrooms": 1,
+        "images": [],
+        "currency": "EUR",
+        "size_unit": "m2",
+        "description": "Diagnostic test"
+    })
+
+    return {
+        "env": {
+            "SUPABASE_INGEST_URL_set": url_set,
+            "SUPABASE_INGEST_URL_preview": url_preview,
+            "SCRAPER_SECRET_set": secret_set
+        },
+        "ingest_result": result
+    }
+
 
 @app.post(
     "/scrape",
